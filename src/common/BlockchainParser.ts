@@ -85,7 +85,7 @@ export class BlockchainParser {
                     }
                 })
             }).catch((err: Error) => {
-                winston.error(`Backword parsing failed for blocks ${nextBlock} with error: ${err}. \nRestarting parsing for those blocks...`);
+                winston.error(`Backward parsing failed for blocks ${nextBlock} with error: ${err}. \nRestarting parsing for those blocks...`);
                 this.scheduleBackwardParsing();
             });
         }).catch((err: Error) => {
@@ -171,7 +171,7 @@ export class BlockchainParser {
 
     private saveLastBackwardBlock(block: number) {
         return LastParsedBlock.findOneAndUpdate({}, {lastBackwardBlock: block}, {upsert: true}).catch((err: Error) => {
-            winston.error(`Could not save lastest backward block to DB with error: ${err}`);
+            winston.error(`Could not save latest backward block to DB with error: ${err}`);
         });
     }
 

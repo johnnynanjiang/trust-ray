@@ -25,7 +25,7 @@ export class ERC20Parser {
                 totalSupply: contract[3],
             }
         } catch (error) {
-            winston.error(`Error getting standart ERC20 ${contractAddress} `, error)
+            winston.error(`Error getting standard ERC20 ${contractAddress} `, error)
             Promise.resolve()
         }
     }

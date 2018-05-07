@@ -72,31 +72,31 @@ export class TokenParser {
         });
     }
 
-    public getContract = async (contract: string) => {
+    public getContract = async (contractAddress: string) => {
         try {
-            const notParsableToken = await NotParsableContracts.findOne({address: contract})
+            const notParsableToken = await NotParsableContracts.findOne({address: contractAddress})
             if (notParsableToken) { Promise.resolve() }
 
-            const isContractVerified: boolean = this.isContractVerified(contract)
-            const erc20Contract = await this.erc20Parser.getERC20Contract(contract)
+            const isContractVerified: boolean = this.isContractVerified(contractAddress)
+            const erc20Contract = await this.erc20Parser.getERC20Contract(contractAddress)
 
             if (erc20Contract) {
-                const updatedERC20 = await this.updateERC20Token(contract, erc20Contract.name, erc20Contract.symbol, erc20Contract.decimals, erc20Contract.totalSupply, isContractVerified)
+                const updatedERC20 = await this.updateERC20Token(contractAddress, erc20Contract.name, erc20Contract.symbol, erc20Contract.decimals, erc20Contract.totalSupply, isContractVerified)
                 return updatedERC20
             }
 
-            const namePromise = await this.erc20Parser.getContractName(contract)
-            const symbolPromise = await this.erc20Parser.getContractSymbol(contract)
-            const decimalsPromise = await this.erc20Parser.getContractDecimals(contract)
-            const totalSupplyPromise = await this.erc20Parser.getContractTotalSupply(contract)
+            const namePromise = await this.erc20Parser.getContractName(contractAddress)
+            const symbolPromise = await this.erc20Parser.getContractSymbol(contractAddress)
+            const decimalsPromise = await this.erc20Parser.getContractDecimals(contractAddress)
+            const totalSupplyPromise = await this.erc20Parser.getContractTotalSupply(contractAddress)
 
             const [name, symbol, decimals, totalSupply] = await Promise.all([namePromise, symbolPromise, decimalsPromise, totalSupplyPromise])
-            const updateERC20Token = await this.updateERC20Token(contract, name, symbol, decimals, totalSupply, isContractVerified)
+            const updateERC20Token = await this.updateERC20Token(contractAddress, name, symbol, decimals, totalSupply, isContractVerified)
 
             return updateERC20Token;
         } catch (error) {
-            winston.error(`Could not get contract ${contract} with error ${error}`)
-            const updateNotParsableContract = await this.updateNotParsableContract(contract)
+            winston.error(`Could not get contract ${contractAddress} with error ${error}`)
+            const updateNotParsableContract = await this.updateNotParsableContract(contractAddress)
             return updateNotParsableContract
         }
     }
@@ -155,7 +155,7 @@ export class TokenParser {
 
 
     public async getTokenBalances(address: string) {
-        const addressOperations = await this.getOperationstionsByAddress(address);
+        const addressOperations = await this.getOperationsByAddress(address);
         const flattenOperations = flattenDeep(addressOperations);
         const tokenContracts: any[] = this.extractTokenContracts(flattenOperations);
         const contractDetails: any = await this.getContractDetails(tokenContracts);
@@ -188,7 +188,7 @@ export class TokenParser {
         });
     }
 
-    private getOperationstionsByAddress(address: string) {
+    private getOperationsByAddress(address: string) {
         return Transaction.find({"addresses": {$in: [address]}})
             .populate({
                 path: "operations",
