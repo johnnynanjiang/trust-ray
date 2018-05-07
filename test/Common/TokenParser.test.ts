@@ -37,7 +37,6 @@ describe("Test ERC20Parser", () => {
     })
 
     describe("Test getContractName", function() {
-        this.timeout(4000)
         const getContractName = new ERC20Parser().getContractName
         const tests = [
             {address: "0x5c743a35e903f6c584514ec617acee0611cf44f3", name: "name", type: "string", expectedName: "Experty Token"},
