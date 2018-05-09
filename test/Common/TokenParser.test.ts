@@ -23,7 +23,7 @@ describe("Test ERC20Parser", () => {
     })
 
     describe("Test getERC20Contract", () => {
-        it("Should sucsesscully parse ERC20 combatible contract", async () => {
+        it("Should successfully parse ERC20 compatible contract", async () => {
                 const getERC20Contract = new ERC20Parser().getERC20Contract
                 const erc20Address = "0xeda8b016efa8b1161208cf041cd86972eee0f31e"
                 const erc20contract = await getERC20Contract(erc20Address)
