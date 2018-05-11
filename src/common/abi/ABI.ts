@@ -260,30 +260,9 @@ export const standardERC721ABI = [
     },
     {
         "constant": true,
-        "inputs": [{"name": "_tokenId", "type": "uint256"}],
-        "name": "getApproved",
-        "outputs": [{"name": "_approved", "type": "address"}],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {"name": "_to", "type": "address"},
-            {"name": "_tokenId", "type": "uint256"}
-        ],
-        "name": "approve",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": true,
         "inputs": [],
-        "name": "implementsERC721",
-        "outputs": [{"name": "_implementsERC721", "type": "bool"}],
+        "name": "symbol",
+        "outputs": [{"name": "_symbol", "type": "string"}],
         "payable": false,
         "stateMutability": "view",
         "type": "function"
@@ -296,6 +275,78 @@ export const standardERC721ABI = [
         "payable": false,
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "implementsERC721",
+        "outputs": [{"name": "_implementsERC721", "type": "bool"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+
+
+
+/*
+    {
+        "constant": false,
+        "inputs": [
+            {"name": "_to", "type": "address"},
+            {"name": "_tokenId", "type": "uint256"}
+        ],
+        "name": "transfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "numTokensTotal",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "getOwnerTokens",
+        "outputs": [{"name": "_tokenIds", "type": "uint256[]"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {"indexed": true, "name": "_to", "type": "address"},
+            {"indexed": true, "name": "_tokenId", "type": "uint256"}
+        ],
+        "name": "Mint",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {"indexed": true, "name": "_from", "type": "address"},
+            {"indexed": true, "name": "_to", "type": "address"},
+            {"indexed": false, "name": "_tokenId", "type": "uint256"}
+        ],
+        "name": "Transfer",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {"indexed": true, "name": "_owner", "type": "address"},
+            {"indexed": true, "name": "_approved", "type": "address"},
+            {"indexed": false, "name": "_tokenId", "type": "uint256"}
+        ],
+        "name": "Approval",
+        "type": "event"
     },
     {
         "constant": false,
@@ -364,9 +415,9 @@ export const standardERC721ABI = [
     },
     {
         "constant": true,
-        "inputs": [],
-        "name": "symbol",
-        "outputs": [{"name": "_symbol", "type": "string"}],
+        "inputs": [{"name": "_tokenId", "type": "uint256"}],
+        "name": "getApproved",
+        "outputs": [{"name": "_approved", "type": "address"}],
         "payable": false,
         "stateMutability": "view",
         "type": "function"
@@ -377,57 +428,11 @@ export const standardERC721ABI = [
             {"name": "_to", "type": "address"},
             {"name": "_tokenId", "type": "uint256"}
         ],
-        "name": "transfer",
+        "name": "approve",
         "outputs": [],
         "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "numTokensTotal",
-        "outputs": [{"name": "", "type": "uint256"}],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [{"name": "_owner", "type": "address"}],
-        "name": "getOwnerTokens",
-        "outputs": [{"name": "_tokenIds", "type": "uint256[]"}],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {"indexed": true, "name": "_to", "type": "address"},
-            {"indexed": true, "name": "_tokenId", "type": "uint256"}
-        ],
-        "name": "Mint",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {"indexed": true, "name": "_from", "type": "address"},
-            {"indexed": true, "name": "_to", "type": "address"},
-            {"indexed": false, "name": "_tokenId", "type": "uint256"}
-        ],
-        "name": "Transfer",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {"indexed": true, "name": "_owner", "type": "address"},
-            {"indexed": true, "name": "_approved", "type": "address"},
-            {"indexed": false, "name": "_tokenId", "type": "uint256"}
-        ],
-        "name": "Approval",
-        "type": "event"
-    }
+*/
 ]

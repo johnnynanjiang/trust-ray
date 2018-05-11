@@ -1366,5 +1366,10 @@ export const contracts = {
     },
     "0x9b70740e708a083c6ff38df52297020f5dfaa5ee": {
         id: "daneel"
-    }
+    },
+
+    //ERC721
+    "0x87d598064c736dd0c712d329afcfaa0ccc1921a1": {
+        id: "cryptofighters"
+    },
 }
