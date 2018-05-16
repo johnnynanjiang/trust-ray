@@ -30,7 +30,8 @@ describe("Test ERC721Parser", () => {
 
                 expect(ERC721contract).to.have.property("name").eql("CryptoFighters")
                 expect(ERC721contract).to.have.property("symbol").eql("CF")
-                expect(ERC721contract).to.have.property("totalSupply").eql("4661")
+                expect(ERC721contract).to.have.property("totalSupply").eql("4668")
+                expect(ERC721contract).to.have.property("implementsERC721").eql(true)
 
         })
     })

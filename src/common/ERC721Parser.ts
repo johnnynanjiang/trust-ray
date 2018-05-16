@@ -22,6 +22,7 @@ export class ERC721Parser {
                 name: contract[0],
                 symbol: contract[1],
                 totalSupply: contract[2],
+                implementsERC721: contract[3],
             }
         } catch (error) {
             winston.error(`Error getting standard ERC721 ${contractAddress} `, error)
