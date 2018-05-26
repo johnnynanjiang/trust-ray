@@ -30,11 +30,11 @@ export class ERC721Parser {
         }
     }
 
-    public getContractInstance = async (contractAddress, ABI) => {
+    public getContractInstance = async (contractAddress, ABI, ... args: any[]) => {
             const contractPromise = BluebirdPromise.map(ABI, async (abi: any) => {
                 try {
                     const contractInstance = new Config.web3.eth.Contract([abi], contractAddress);
-                    const value = await contractInstance.methods[abi.name]().call()
+                    const value = await contractInstance.methods[abi.name](args).call()
                     return value;
                 } catch (error) {
                     winston.error(`Error getting ERC721 contract ${contractAddress} instance method ${abi.name}`)
@@ -45,9 +45,9 @@ export class ERC721Parser {
     }
 
     // TODO: to implement
-    public getOwnerOf = async (contractAddress: string) => {
+    public getOwnerOf = async (contractAddress: string, tokenId: string) => {
         try {
-            const contractPromises = await this.getContractInstance(contractAddress, ownerOfABI)
+            const contractPromises = await this.getContractInstance(contractAddress, ownerOfABI, tokenId)
             const ownerResults = await BluebirdPromise.all(contractPromises).then((owners: any) => {
                 const owner =  owners.filter((owner: any) => typeof owner === "string" && owner.length > 0)
                 return owner

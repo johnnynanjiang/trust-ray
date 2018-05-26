@@ -39,9 +39,9 @@ describe("Test ERC721Parser", () => {
     // TODO: to implement
     describe("Test getOwnerOf", () => {
         it("Should successfully the owner", async () => {
-            const getOwnerOf = new ERC721Parser().getOwnerOf
-            const ERC721TokenId = "0x0000000000000000000000000000000000000000000000000000000000000e50"
-            const owner = await getOwnerOf(ERC721TokenId)
+            const ERC721ContractAddress = "0x87d598064c736dd0c712d329afcfaa0ccc1921a1"
+            const ERC721TokenId = "0x0000000000000000000000000000000000000000000000000000000000001245"
+            const owner = await new ERC721Parser().getOwnerOf(ERC721ContractAddress, ERC721TokenId)
 
             expect(owner).to.be.eq("string")
         })
