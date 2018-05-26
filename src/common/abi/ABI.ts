@@ -287,6 +287,15 @@ export const standardERC721ABI = [
     },
 /* mandatory
     {
+        "constant": true,
+        "inputs": [{"name": "_tokenId", "type": "uint256"}],
+        "name": "ownerOf",
+        "outputs": [{"name": "_owner", "type": "address"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "constant": false,
         "inputs": [
             {"name": "_from", "type": "address"},
@@ -330,15 +339,6 @@ export const standardERC721ABI = [
         ],
         "name": "Approval",
         "type": "event"
-    },
-    {
-        "constant": true,
-        "inputs": [{"name": "_tokenId", "type": "uint256"}],
-        "name": "ownerOf",
-        "outputs": [{"name": "_owner", "type": "address"}],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
     },
     {
         "constant": true,
@@ -434,4 +434,16 @@ export const standardERC721ABI = [
         "type": "function"
     },
 */
+]
+
+export const ownerOfABI = [
+    {
+        "constant": true,
+        "inputs": [{"name": "_tokenId", "type": "uint256"}],
+        "name": "ownerOf",
+        "outputs": [{"name": "_owner", "type": "address"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
 ]

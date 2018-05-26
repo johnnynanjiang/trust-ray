@@ -24,30 +24,26 @@ describe("Test ERC721Parser", () => {
 
     describe("Test getERC721Contract", () => {
         it("Should successfully parse ERC721 compatible contract", async () => {
-                const getERC721Contract = new ERC721Parser().getERC721Contract
-                const ERC721Address = "0x87d598064c736dd0c712d329afcfaa0ccc1921a1"
-                const ERC721contract = await getERC721Contract(ERC721Address)
+            const getERC721Contract = new ERC721Parser().getERC721Contract
+            const ERC721ContractAddress = "0x87d598064c736dd0c712d329afcfaa0ccc1921a1"
+            const ERC721contract = await getERC721Contract(ERC721ContractAddress)
 
-                expect(ERC721contract).to.have.property("name").eql("CryptoFighters")
-                expect(ERC721contract).to.have.property("symbol").eql("CF")
-                expect(ERC721contract).to.have.property("totalSupply").eql("4668")
-                expect(ERC721contract).to.have.property("implementsERC721").eql(true)
+            expect(ERC721contract).to.have.property("name").eql("CryptoFighters")
+            expect(ERC721contract).to.have.property("symbol").eql("CF")
+            expect(ERC721contract).to.have.property("totalSupply").a("string")
+            expect(ERC721contract).to.have.property("implementsERC721").eql(true)
 
         })
     })
 
-    describe("Test getContract", () => {
-        const getContract = new TokenParser().getContract
+    // TODO: to implement
+    describe("Test getOwnerOf", () => {
+        it("Should successfully the owner", async () => {
+            const getOwnerOf = new ERC721Parser().getOwnerOf
+            const ERC721TokenId = "0x0000000000000000000000000000000000000000000000000000000000000e50"
+            const owner = await getOwnerOf(ERC721TokenId)
 
-        it("Should get ERC721", async () => {
-            const contract = "0xeda8b016efa8b1161208cf041cd86972eee0f31e"
-            const result = await getContract(contract)
-
-            result.should.have.property("verified").to.equal(true)
-            result.should.have.property("name").eql("I HOUSE TOKEN")
-            result.should.have.property("symbol").eql("IHT")
-            result.should.have.property("decimals").eql(18)
-            result.should.have.property("totalSupply").eql("1000000000000000000000000000")
+            expect(owner).to.be.eq("string")
         })
     })
 })

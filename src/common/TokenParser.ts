@@ -1,5 +1,6 @@
 import * as winston from "winston";
 import { ERC20Contract } from "../models/Erc20ContractModel";
+import { ERC721Contract } from "../models/Erc721ContractModel";
 import { Config } from "./Config";
 import { getTokenBalanceForAddress, loadContractABIs } from "./Utils";
 import { TransactionOperation } from "../models/TransactionOperationModel";
@@ -7,7 +8,8 @@ import { NotParsableContracts } from "../models/NotParsableContractModel";
 import { Transaction } from "../models/TransactionModel";
 import * as BluebirdPromise from "bluebird";
 import { contracts } from "./tokens/contracts";
-import { ERC20Parser }  from "./ERC20Parser"
+import { ERC20Parser }  from "./ERC20Parser";
+import { ERC721Parser }  from "./ERC721Parser";
 const flattenDeep = require("lodash.flattendeep");
 
 export class TokenParser {
@@ -16,7 +18,9 @@ export class TokenParser {
     private OperationTypes = {
         Transfer: "Transfer",
     }
+
     private erc20Parser = new ERC20Parser()
+    private erc721Parser = new ERC721Parser()
 
     private cachedContracts = {}
 
@@ -61,6 +65,9 @@ export class TokenParser {
         const isContractVerified: boolean = this.isContractVerified(contractAddress);
         const options = {new: true};
         return ERC20Contract.findOneAndUpdate({address: contractAddress}, {$set: {verified: isContractVerified}}, options).exec().then((erc20contract: any) => {
+            // TODO: doesn't have to do null check, can set returnNewDocument to true
+            // Mongodb document says: If returnNewDocument was false, the operation would return null as there is no original document to return.
+            // @ https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/
             if (!erc20contract) {
                 return this.getContract(contractAddress);
             } else {
@@ -78,7 +85,13 @@ export class TokenParser {
             if (notParsableToken) { Promise.resolve() }
 
             const isContractVerified: boolean = this.isContractVerified(contractAddress)
+
             const erc20Contract = await this.erc20Parser.getERC20Contract(contractAddress)
+
+            const erc721Contract = await this.erc721Parser.getERC721Contract(contractAddress)
+            if (erc721Contract) {
+                const updatedERC721 = await this.updateERC721Token(contractAddress, erc721Contract.name, erc721Contract.symbol, erc721Contract.totalSupply, isContractVerified)
+            }
 
             if (erc20Contract) {
                 const updatedERC20 = await this.updateERC20Token(contractAddress, erc20Contract.name, erc20Contract.symbol, erc20Contract.decimals, erc20Contract.totalSupply, isContractVerified)
@@ -91,7 +104,7 @@ export class TokenParser {
             const totalSupplyPromise = await this.erc20Parser.getContractTotalSupply(contractAddress)
 
             const [name, symbol, decimals, totalSupply] = await Promise.all([namePromise, symbolPromise, decimalsPromise, totalSupplyPromise])
-            const updateERC20Token = await this.updateERC20Token(contractAddress, name, symbol, decimals, totalSupply, isContractVerified)
+            const updateERC20Token = await this.updateERC20Token(contractAddress, erc20Contract.name, erc20Contract.symbol, erc20Contract.decimals, erc20Contract.totalSupply, isContractVerified)
 
             return updateERC20Token;
         } catch (error) {
@@ -108,6 +121,25 @@ export class TokenParser {
             return Config.web3.utils.hexToAscii(symbol).replace(/\u0000*$/, "");
         }
         return symbol;
+    }
+
+    private async updateERC721Token(address: string, name: string, symbol: string, totalSupply: string, isContractVerified: boolean) {
+        winston.warn(`updateERC721Token ${address}`)
+
+        try {
+            const update = await ERC721Contract.findOneAndUpdate({address}, {
+                address,
+                name,
+                symbol,
+                totalSupply,
+                verified: isContractVerified
+            }, {upsert: true, new: true, setDefaultsOnInsert: true})
+
+            return update
+        } catch (error) {
+            winston.error(`Error updating ERC721 token`, error)
+            return Promise.reject(error)
+        }
     }
 
     private async updateERC20Token(address: string, name: string, symbol: string, decimal: string, totalSupply: string, isContractVerified: boolean) {
