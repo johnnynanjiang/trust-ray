@@ -1,7 +1,7 @@
 import * as winston from "winston";
 import { Config } from "./Config";
 import * as BluebirdPromise from "bluebird";
-import { ownerOfABI, standardERC721ABI } from "./abi/ABI";
+import { nameABI, ownerOfABI, standardERC721ABI } from "./abi/ABI";
 
 export class ERC721Parser {
 
@@ -34,18 +34,38 @@ export class ERC721Parser {
             const contractPromise = BluebirdPromise.map(ABI, async (abi: any) => {
                 try {
                     const contractInstance = new Config.web3.eth.Contract([abi], contractAddress);
-                    const value = await contractInstance.methods[abi.name](args).call()
-                    return value;
+                    if (args.length > 0) {
+                        return await contractInstance.methods[abi.name](args).call()
+                    } else {
+                        return await contractInstance.methods[abi.name]().call()
+                    }
                 } catch (error) {
-                    winston.error(`Error getting ERC721 contract ${contractAddress} instance method ${abi.name}`)
+                    winston.error(`Error getting ERC721 contract ${contractAddress} instance method ${abi.name}\n${error}`)
                     Promise.resolve()
                 }
             })
             return contractPromise
     }
 
-    // TODO: to implement
-    public getOwnerOf = async (contractAddress: string, tokenId: string) => {
+    public getContractName = async (contractAddress: string) => {
+        try {
+            const contractPromises = await this.getContractInstance(contractAddress, nameABI)
+            const nameResults = await BluebirdPromise.all(contractPromises).then((names: any) => {
+                const name =  names.filter((name: any) => typeof name === "string" && name.length > 0)
+                return name
+            })
+            let name = nameResults.length > 0 ? nameResults[0] : "";
+            if (name.startsWith("0x")) {
+                name = this.convertHexToAscii(name)
+            }
+            return name;
+        } catch (error) {
+            winston.error(`Error getting contract ${contractAddress} name`)
+            Promise.resolve()
+        }
+    }
+
+    public getContractOwnerOf = async (contractAddress: string, tokenId: string) => {
         try {
             const contractPromises = await this.getContractInstance(contractAddress, ownerOfABI, tokenId)
             const ownerResults = await BluebirdPromise.all(contractPromises).then((owners: any) => {

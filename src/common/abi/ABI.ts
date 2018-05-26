@@ -446,4 +446,13 @@ export const ownerOfABI = [
         "stateMutability": "view",
         "type": "function"
     },
+    {
+        "constant": true,
+        "inputs": [{"name": "_tokenId", "type": "uint256"}],
+        "name": "ownerOf",
+        "outputs": [{"name": "owner", "type": "address"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    }
 ]
