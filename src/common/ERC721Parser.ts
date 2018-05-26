@@ -34,11 +34,7 @@ export class ERC721Parser {
             const contractPromise = BluebirdPromise.map(ABI, async (abi: any) => {
                 try {
                     const contractInstance = new Config.web3.eth.Contract([abi], contractAddress);
-                    if (args.length > 0) {
-                        return await contractInstance.methods[abi.name](...args).call()
-                    } else {
-                        return await contractInstance.methods[abi.name]().call()
-                    }
+                    return await contractInstance.methods[abi.name](...args).call()
                 } catch (error) {
                     winston.error(`Error getting ERC721 contract ${contractAddress} instance method ${abi.name}\n${error}`)
                     Promise.resolve()
