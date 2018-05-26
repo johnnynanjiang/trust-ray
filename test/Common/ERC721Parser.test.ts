@@ -1,9 +1,7 @@
-import { contracts } from "../../src/common/tokens/contracts";
 import { ERC721Parser } from "../../src/common/ERC721Parser"
 import { TokenParser } from "../../src/common/TokenParser"
 const chai = require("chai")
 chai.use(require("chai-as-promised"))
-const should = chai.should()
 const expect = chai.expect
 const assert = chai.assert
 
@@ -39,12 +37,12 @@ describe("Test ERC721Parser", () => {
     describe("Test getContractOwnerOf", () => {
         it("Should successfully the owner", async () => {
             const ERC721ContractAddress = "0x87d598064c736dd0c712d329afcfaa0ccc1921a1"
-            const ERC721TokenId = "0x0000000000000000000000000000000000000000000000000000000000001245"
+            const ERC721TokenId = "0x0000000000000000000000000000000000000000000000000000000000000e50"
             const name = await new ERC721Parser().getContractName(ERC721ContractAddress)
             const owner = await new ERC721Parser().getContractOwnerOf(ERC721ContractAddress, ERC721TokenId)
 
             expect(name).to.be.eq("CryptoFighters")
-            expect(owner).to.be.eq("string") // TODO: to fix this
+            expect(owner).to.be.eq("0xf126154B74B69cAe1Fbf2d8Cf7c43424C6eC5541")
         })
     })
 })

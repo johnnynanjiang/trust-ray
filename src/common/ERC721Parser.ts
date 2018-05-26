@@ -35,7 +35,7 @@ export class ERC721Parser {
                 try {
                     const contractInstance = new Config.web3.eth.Contract([abi], contractAddress);
                     if (args.length > 0) {
-                        return await contractInstance.methods[abi.name](args).call()
+                        return await contractInstance.methods[abi.name](...args).call()
                     } else {
                         return await contractInstance.methods[abi.name]().call()
                     }
@@ -72,11 +72,7 @@ export class ERC721Parser {
                 const owner =  owners.filter((owner: any) => typeof owner === "string" && owner.length > 0)
                 return owner
             })
-            let owner = ownerResults.length > 0 ? ownerResults[0] : "";
-            if (owner.startsWith("0x")) {
-                owner = this.convertHexToAscii(owner)
-            }
-            return owner;
+            return ownerResults.length > 0 ? ownerResults[0] : "";
         } catch (error) {
             winston.error(`Error getting ERC721 contract ${contractAddress} owner`)
             Promise.resolve()
