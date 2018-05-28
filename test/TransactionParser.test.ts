@@ -3,6 +3,7 @@ import { TransactionParser } from "../src/common/TransactionParser";
 import * as mocha from "mocha";
 import { block, contractCreateTrx, ethTransferTrx } from "./SeedData";
 import { should, expect } from "chai"
+import { Config } from "../src/common/Config";
 
 
 describe("Test TransactionParser", () => {
@@ -30,6 +31,13 @@ describe("Test TransactionParser", () => {
 
             expect(transaction.to).to.equal("");
             expect(transaction.addresses).to.have.lengthOf(1);
+        })
+    })
+
+    describe("Test parseTransactions()", () => {
+        it("Should parse transactions from a block", async () => {
+            const block = await Config.web3.eth.getBlock(5577780, true);
+            expect(block.transactions.length).to.equal(157);
         })
     })
 })
