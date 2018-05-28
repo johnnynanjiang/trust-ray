@@ -1,17 +1,15 @@
-import * as winston from "winston";
-import { Config } from "./Config";
-import { LastParsedBlock } from "../models/LastParsedBlockModel";
 import { BlockchainParser } from "./BlockchainParser";
 import { TokensParser } from "./TokensParser";
 import { BlockchainState } from "./BlockchainState";
 import { PusherScanner } from "../pusher/PusherScanner";
 import { setDelay } from "./Utils";
+import { ERC721TokensParser } from "./ERC721TokensParser";
 
-const config = require("config");
 const parser = new BlockchainParser();
 const pusher = new PusherScanner();
 const tokensParser = new TokensParser();
 const blockchainState = new BlockchainState();
+const erc721TokensParser = new ERC721TokensParser();
 
 export class ParseStarter {
     start(): void {
@@ -28,5 +26,6 @@ export class ParseStarter {
         parser.start();
         pusher.start();
         tokensParser.start();
+        erc721TokensParser.start();
     }
 }

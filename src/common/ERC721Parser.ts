@@ -2,8 +2,16 @@ import * as winston from "winston";
 import { Config } from "./Config";
 import * as BluebirdPromise from "bluebird";
 import { nameABI, ownerOfABI, standardERC721ABI } from "./abi/ABI";
+import { NotParsableContracts } from "../models/NotParsableContractModel";
+import { contracts } from "./tokens/contracts";
+import { ERC721Contract } from "../models/Erc721ContractModel";
 
 export class ERC721Parser {
+    private abiDecoder = require("abi-decoder");
+    private OperationTypes = {
+        Transfer: "Transfer",
+    }
+    private cachedContracts = {}
 
     public convertHexToAscii(symbol: string): string {
         if (symbol.startsWith("0x")) {
@@ -72,6 +80,118 @@ export class ERC721Parser {
         } catch (error) {
             winston.error(`Error getting ERC721 contract ${contractAddress} owner`)
             Promise.resolve()
+        }
+    }
+
+    public parseContracts(transactions: any) {
+        if (!transactions) return Promise.resolve([undefined, undefined]);
+
+        const contractAddresses: string[] = [];
+
+        transactions.map((transaction: any) => {
+            if (transaction.receipt.logs.length === 0 ) return;
+
+            const decodedLogs = this.abiDecoder.decodeLogs(transaction.receipt.logs).filter((log: any) => log);
+
+            if (decodedLogs.length === 0) return;
+
+            decodedLogs.forEach((decodedLog: any) => {
+                if (decodedLog.name === this.OperationTypes.Transfer) {
+                    contractAddresses.push(decodedLog.address.toLowerCase());
+                }
+            })
+        });
+
+        const uniqueContracts = [...(new Set(contractAddresses))];
+        const promises = uniqueContracts.map((contractAddress: any) => this.findOrCreateContract(contractAddress));
+
+        return Promise.all(promises).then((contracts: any) => [transactions, this.flatContracts(contracts)])
+            .catch((err: Error) => {
+                winston.error(`Could not parse erc721 contracts with error: ${err}`);
+            });
+    }
+
+    private findOrCreateContract(contractAddress: string): Promise<void> {
+        if (this.cachedContracts.hasOwnProperty(contractAddress)) {
+            return Promise.resolve(this.cachedContracts[contractAddress]);
+        }
+        const isContractVerified: boolean = this.isContractVerified(contractAddress);
+        const options = {new: true};
+        return ERC721Contract.findOneAndUpdate({address: contractAddress}, {$set: {verified: isContractVerified}}, options).exec().then((erc721contract: any) => {
+            // TODO: doesn't have to do null check, can set returnNewDocument to true
+            // Mongodb document says: If returnNewDocument was false, the operation would return null as there is no original document to return.
+            // @ https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/
+            if (!erc721contract) {
+                return this.getContract(contractAddress);
+            } else {
+                this.cachedContracts[contractAddress] = erc721contract
+                return Promise.resolve(erc721contract);
+            }
+        }).catch((err: Error) => {
+            winston.error(`Could not find contract by id for ${contractAddress} with error: ${err}`);
+        });
+    }
+
+    private flatContracts(contracts: any) {
+        // remove undefined contracts
+        const flatUndefinedContracts =  contracts
+            .map((contract: any) => (contract !== undefined && contract !== null)
+                ? [contract]
+                : [])
+            .reduce( (a: any, b: any) => a.concat(b), [] );
+        // remove duplicates
+        return flatUndefinedContracts
+            .reduce((a: any, b: any) => a.findIndex((e: any) => e.address == b.address) < 0
+                ? [...a, b]
+                : a, []);
+    }
+
+    public getContract = async (contractAddress: string) => {
+        try {
+            const notParsableToken = await NotParsableContracts.findOne({address: contractAddress})
+            if (notParsableToken) { Promise.resolve() }
+
+            const isContractVerified: boolean = this.isContractVerified(contractAddress)
+
+            var erc721Contract = await this.getERC721Contract(contractAddress)
+            if (erc721Contract) {
+                erc721Contract = await this.updateERC721Token(contractAddress, erc721Contract.name, erc721Contract.symbol, erc721Contract.totalSupply, isContractVerified)
+            }
+            return erc721Contract;
+        } catch (error) {
+            winston.error(`Could not get contract ${contractAddress} with error ${error}`)
+            const updateNotParsableContract = await this.updateNotParsableContract(contractAddress)
+            return updateNotParsableContract
+        }
+    }
+
+    private async updateNotParsableContract(address: string) {
+        try {
+            await NotParsableContracts.findOneAndUpdate({address}, {address}, {upsert: true, new: true}).then((savedNonParsable: any) => {
+                winston.info(`Saved ${savedNonParsable} to non-parsable contracts`)
+            })
+        } catch (error) {
+            winston.error(`Could not save non-parsable contract ${address} with error`, error);
+            return Promise.reject(error)
+        }
+    }
+
+    public isContractVerified = (address: string): boolean => contracts[address] ? true : false;
+
+    private async updateERC721Token(address: string, name: string, symbol: string, totalSupply: string, isContractVerified: boolean) {
+        try {
+            const update = await ERC721Contract.findOneAndUpdate({address}, {
+                address,
+                name,
+                symbol,
+                totalSupply,
+                verified: isContractVerified
+            }, {upsert: true, new: true, setDefaultsOnInsert: true})
+
+            return update
+        } catch (error) {
+            winston.error(`Error updating ERC721 token`, error)
+            return Promise.reject(error)
         }
     }
 }
