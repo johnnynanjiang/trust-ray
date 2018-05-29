@@ -6,9 +6,18 @@ import { TransactionParser } from "../common/TransactionParser";
 import { setDelay } from "./Utils";
 import { BlockchainState } from "./BlockchainState";
 import { ERC721Parser } from "./ERC721Parser";
+import { TokenParser } from "./TokenParser";
 
 export class ERC721TokensParser {
-    private erc721Parser = new ERC721Parser()
+    private transactionParser: TransactionParser;
+    private erc721Parser: ERC721Parser;
+    private tokenParser: TokenParser;
+
+    constructor() {
+        this.transactionParser = new TransactionParser();
+        this.erc721Parser = new ERC721Parser();
+        this.tokenParser = new TokenParser();
+    }
 
     start() {
         BlockchainState.getBlockState().then(([blockInChain, blockInDb]) => {
@@ -44,11 +53,26 @@ export class ERC721TokensParser {
         })
     }
 
-    parseBlock(block: number): Promise<any> {
-        return TransactionParser.getTransactions(block).then((transactions: any) => {
-            return this.erc721Parser.parseContracts(transactions)
-        }).catch((error: Error) => {
-            winston.error(`Error parsing block ${block}`, error)
-        })
+    parseBlock(blockNumber: number) {
+        return Config.web3.eth.getBlock(
+            blockNumber, true
+        ).then((block) => {
+            return this.transactionParser.parseTransactions(this.flatBlocksWithMissingTransactions([block]));
+        }).then((transactions: any) => {
+            return this.erc721Parser.parseERC721ContractsFromTransactions(transactions);
+        }).then(([transactions, contracts]: any) => {
+            return this.transactionParser.parseTransactionOperations(transactions, contracts);
+        }).then(() => {
+            return Promise.resolve();
+        });
+    }
+
+
+    private flatBlocksWithMissingTransactions(blocks: any) {
+        return blocks
+            .map((block: any) => (block !== null && block.transactions !== null && block.transactions.length > 0)
+                ? [block]
+                : [])
+            .reduce( (a: any, b: any) => a.concat(b), [] );
     }
 }

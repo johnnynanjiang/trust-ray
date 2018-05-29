@@ -8,10 +8,8 @@ import { ERC721Contract } from "../models/Erc721ContractModel";
 
 export class ERC721Parser {
     private abiDecoder = require("abi-decoder");
-    private OperationTypes = {
-        Transfer: "Transfer",
-    }
-    private cachedContracts = {}
+    private OperationTypes = ["Transfer", "Approval"];
+    private cachedContracts = {};
 
     public convertHexToAscii(symbol: string): string {
         if (symbol.startsWith("0x")) {
@@ -83,7 +81,7 @@ export class ERC721Parser {
         }
     }
 
-    public parseContracts(transactions: any) {
+    public parseERC721ContractsFromTransactions(transactions: any) {
         if (!transactions) return Promise.resolve([undefined, undefined]);
 
         const contractAddresses: string[] = [];
@@ -96,7 +94,7 @@ export class ERC721Parser {
             if (decodedLogs.length === 0) return;
 
             decodedLogs.forEach((decodedLog: any) => {
-                if (decodedLog.name === this.OperationTypes.Transfer) {
+                if (this.OperationTypes.indexOf(decodedLog.name)) {
                     contractAddresses.push(decodedLog.address.toLowerCase());
                 }
             })
