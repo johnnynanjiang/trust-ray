@@ -9,7 +9,7 @@ import { Transaction } from "../models/TransactionModel";
 import * as BluebirdPromise from "bluebird";
 import { contracts } from "./tokens/contracts";
 import { ERC20Parser }  from "./ERC20Parser";
-import { ERC721Parser }  from "./ERC721Parser";
+import { ERC721TransactionParser }  from "./ERC721TransactionParser";
 const flattenDeep = require("lodash.flattendeep");
 
 export class TokenParser {
@@ -20,7 +20,7 @@ export class TokenParser {
     }
 
     private erc20Parser = new ERC20Parser()
-    private erc721Parser = new ERC721Parser()
+    private erc721Parser = new ERC721TransactionParser()
 
     private cachedContracts = {}
 
@@ -124,7 +124,7 @@ export class TokenParser {
     }
 
     private async updateERC721Token(address: string, name: string, symbol: string, totalSupply: string, isContractVerified: boolean) {
-        winston.warn(`updateERC721Token ${address}`)
+        winston.warn(`****** updateERC721Token ${address}`)
 
         try {
             const update = await ERC721Contract.findOneAndUpdate({address}, {

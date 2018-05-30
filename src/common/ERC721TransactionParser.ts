@@ -6,9 +6,9 @@ import { NotParsableContracts } from "../models/NotParsableContractModel";
 import { contracts } from "./tokens/contracts";
 import { ERC721Contract } from "../models/Erc721ContractModel";
 
-export class ERC721Parser {
+export class ERC721TransactionParser {
     private abiDecoder = require("abi-decoder");
-    private OperationTypes = ["Transfer", "Approval"];
+    private OperationTypes = ["Transfer", "Approval", "approve"];
     private cachedContracts = {};
 
     public convertHexToAscii(symbol: string): string {
@@ -101,7 +101,7 @@ export class ERC721Parser {
         });
 
         const uniqueContracts = [...(new Set(contractAddresses))];
-        const promises = uniqueContracts.map((contractAddress: any) => this.findOrCreateContract(contractAddress));
+        const promises = uniqueContracts.map((contractAddress: any) => this.findOrCreateERC721Contract(contractAddress));
 
         return Promise.all(promises).then((contracts: any) => [transactions, this.flatContracts(contracts)])
             .catch((err: Error) => {
@@ -109,10 +109,11 @@ export class ERC721Parser {
             });
     }
 
-    private findOrCreateContract(contractAddress: string): Promise<void> {
+    private findOrCreateERC721Contract(contractAddress: string): Promise<void> {
         if (this.cachedContracts.hasOwnProperty(contractAddress)) {
             return Promise.resolve(this.cachedContracts[contractAddress]);
         }
+
         const isContractVerified: boolean = this.isContractVerified(contractAddress);
         const options = {new: true};
         return ERC721Contract.findOneAndUpdate({address: contractAddress}, {$set: {verified: isContractVerified}}, options).exec().then((erc721contract: any) => {
@@ -151,10 +152,15 @@ export class ERC721Parser {
 
             const isContractVerified: boolean = this.isContractVerified(contractAddress)
 
-            var erc721Contract = await this.getERC721Contract(contractAddress)
+            let erc721Contract = await this.getERC721Contract(contractAddress)
             if (erc721Contract) {
-                erc721Contract = await this.updateERC721Token(contractAddress, erc721Contract.name, erc721Contract.symbol, erc721Contract.totalSupply, isContractVerified)
+                erc721Contract = await this.updateERC721Contract(contractAddress, erc721Contract.name, erc721Contract.symbol, erc721Contract.totalSupply, isContractVerified)
             }
+
+            if (erc721Contract) {
+                winston.info(`****** Found ERC721 contract ${contractAddress}`)
+            }
+
             return erc721Contract;
         } catch (error) {
             winston.error(`Could not get contract ${contractAddress} with error ${error}`)
@@ -176,7 +182,7 @@ export class ERC721Parser {
 
     public isContractVerified = (address: string): boolean => contracts[address] ? true : false;
 
-    private async updateERC721Token(address: string, name: string, symbol: string, totalSupply: string, isContractVerified: boolean) {
+    private async updateERC721Contract(address: string, name: string, symbol: string, totalSupply: string, isContractVerified: boolean) {
         try {
             const update = await ERC721Contract.findOneAndUpdate({address}, {
                 address,

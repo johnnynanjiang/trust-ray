@@ -5,17 +5,17 @@ import { Token } from "../models/TokenModel";
 import { TransactionParser } from "../common/TransactionParser";
 import { setDelay } from "./Utils";
 import { BlockchainState } from "./BlockchainState";
-import { ERC721Parser } from "./ERC721Parser";
+import { ERC721TransactionParser } from "./ERC721TransactionParser";
 import { TokenParser } from "./TokenParser";
 
-export class ERC721TokensParser {
+export class ERC721BlockParser {
     private transactionParser: TransactionParser;
-    private erc721Parser: ERC721Parser;
+    private erc721Parser: ERC721TransactionParser;
     private tokenParser: TokenParser;
 
     constructor() {
         this.transactionParser = new TransactionParser();
-        this.erc721Parser = new ERC721Parser();
+        this.erc721Parser = new ERC721TransactionParser();
         this.tokenParser = new TokenParser();
     }
 
@@ -61,6 +61,7 @@ export class ERC721TokensParser {
         }).then((transactions: any) => {
             return this.erc721Parser.parseERC721ContractsFromTransactions(transactions);
         }).then(([transactions, contracts]: any) => {
+            // TODO: implement parseTransactionOperations() for ERC721
             return this.transactionParser.parseTransactionOperations(transactions, contracts);
         }).then(() => {
             return Promise.resolve();

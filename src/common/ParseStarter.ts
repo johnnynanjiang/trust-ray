@@ -3,13 +3,13 @@ import { TokensParser } from "./TokensParser";
 import { BlockchainState } from "./BlockchainState";
 import { PusherScanner } from "../pusher/PusherScanner";
 import { setDelay } from "./Utils";
-import { ERC721TokensParser } from "./ERC721TokensParser";
+import { ERC721BlockParser } from "./ERC721BlockParser";
 
 const parser = new BlockchainParser();
 const pusher = new PusherScanner();
 const tokensParser = new TokensParser();
 const blockchainState = new BlockchainState();
-const erc721TokensParser = new ERC721TokensParser();
+const erc721TokensParser = new ERC721BlockParser();
 
 export class ParseStarter {
     start(): void {
