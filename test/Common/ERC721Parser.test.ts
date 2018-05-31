@@ -1,7 +1,9 @@
 import { ERC721TransactionParser } from "../../src/common/ERC721TransactionParser"
 import { TokenParser } from "../../src/common/TokenParser"
-import {ERC721BlockParser} from "../../src/common/ERC721BlockParser";
+import { ERC721BlockParser } from "../../src/common/ERC721BlockParser";
 import { Database } from "../../src/models/Database";
+import { Config } from "../../src/common/Config";
+import { TransactionParser } from "../../src/common/TransactionParser";
 
 const config = require("config");
 const chai = require("chai")
@@ -51,14 +53,33 @@ describe("Test ERC721TransactionParser", () => {
     })
 
     describe("Test ERC721BlockParser", () => {
-        it("Should run", () => {
-            const db = new Database(config.get("MONGO.URI"));
+        let db: Database;
+        let erc721BlockParser: ERC721BlockParser;
+        let transactionParser: TransactionParser;
+        let block: any;
+
+        before(async () => {
+            db = new Database(config.get("MONGO.URI"));
             db.connect();
 
-            const erc721BlockParser = new ERC721BlockParser()
+            erc721BlockParser = new ERC721BlockParser();
+            transactionParser = new TransactionParser();
+
+            block = await Config.web3.eth.getBlock(5665445, true);
+        })
+
+        it("Should parse block", () => {
             const result = erc721BlockParser.parseBlock(5665445)
 
             return expect(result).to.eventually.equal("result")
+        })
+
+        it("Should extract transactions from the block", () => {
+            const blocks = [block, null, { transactions: null }, { transactions: [] }];
+            const flatBlocks = erc721BlockParser.flatBlocksWithMissingTransactions(blocks);
+
+            expect(flatBlocks.length).to.equal(1);
+            expect(flatBlocks[0]).to.equal(block);
         })
     })
 })

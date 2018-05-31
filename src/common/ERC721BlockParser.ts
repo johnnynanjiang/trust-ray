@@ -69,7 +69,7 @@ export class ERC721BlockParser {
     }
 
 
-    private flatBlocksWithMissingTransactions(blocks: any) {
+    public flatBlocksWithMissingTransactions(blocks: any) {
         return blocks
             .map((block: any) => (block !== null && block.transactions !== null && block.transactions.length > 0)
                 ? [block]
