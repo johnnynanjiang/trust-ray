@@ -1,11 +1,15 @@
 import { contracts } from "../../src/common/tokens/contracts";
 import { ERC20Parser } from "../../src/common/ERC20Parser"
 import { TokenParser } from "../../src/common/TokenParser"
+import { Database } from "../../src/models/Database";
+import { TransactionParser } from "../../src/common/TransactionParser";
+import { Config } from "../../src/common/Config";
 const chai = require("chai")
 chai.use(require("chai-as-promised"))
 const should = chai.should()
 const expect = chai.expect
 const assert = chai.assert
+const config = require("config");
 
 describe("Test ERC20Parser", () => {
     describe("Test isContractVerified", () => {
@@ -135,6 +139,33 @@ describe("Test ERC20Parser", () => {
             result.should.have.property("symbol").eql("IHT")
             result.should.have.property("decimals").eql(18)
             result.should.have.property("totalSupply").eql("1000000000000000000000000000")
+        })
+    })
+
+    describe("Test ERC20 parsing", () => {
+        let db: Database;
+        let tokenParser: TokenParser;
+        let transactionParser: TransactionParser;
+        let block: any;
+
+        before(async () => {
+            db = new Database(config.get("MONGO.URI"));
+            db.connect();
+
+            tokenParser = new TokenParser();
+            transactionParser = new TransactionParser();
+
+            block = await Config.web3.eth.getBlock(5665445, true);
+        })
+
+        it("Should parse transactions for ERC20", async () => {
+            const transactions = await transactionParser.parseTransactions([block]);
+
+            expect(transactions.length).to.equal(178);
+
+            const result = await tokenParser.parseERC20Contracts(null);
+
+            expect(result).to.deep.equal([ undefined, undefined ]);
         })
     })
 })
