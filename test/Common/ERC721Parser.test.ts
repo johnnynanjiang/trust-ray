@@ -75,14 +75,6 @@ describe("Test ERC721TransactionParser", () => {
             return expect(result).to.eventually.equal("result")
         })
 
-        it("Should flatten blocks by filtering out invalid blocks such as null, block.transaction being null, and etc", () => {
-            const blocks = [block, null, { transactions: null }, { transactions: [] }];
-            const flatBlocks = erc721BlockParser.flatBlocksWithMissingTransactions(blocks);
-
-            expect(flatBlocks.length).to.equal(1);
-            expect(flatBlocks[0]).to.equal(block);
-        })
-
         it("Should parse a transaction from a block", async () => {
             const transactionHash = "0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b";
             const rawTransaction = block.transactions.find(tx => tx.hash === transactionHash);
@@ -115,7 +107,7 @@ describe("Test ERC721TransactionParser", () => {
             expect(receipts[0].gasUsed).to.equal(21000);
         })
 
-        it("Should merge transactions and receipts into updated transactions", async () => {
+        it("Should merge receipts into corresponding transactions", async () => {
             const extractedTransactions = transactionParser.extractTransactionsFromBlock(block);
             const txIDs = transactionParser.getTransactionIDsFromExtractedTransactions(extractedTransactions);
             const receipts = await transactionParser.fetchTransactionReceipts(txIDs);

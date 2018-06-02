@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { assert } from "chai";
 import "mocha";
 import { BlockchainParser } from "../src/common/BlockchainParser";
+import { Config } from "../src/common/Config";
 
 describe("Test BlockchainParser", () => {
     describe("Test getBlocksRange()", () => {
@@ -21,6 +22,15 @@ describe("Test BlockchainParser", () => {
             expect(range).to.be.an("array");
             expect(range).to.be.include.ordered.members([5]);
         });
+
+        it("Should flat blocks by filtering out invalid blocks such as null, block.transaction being null, and etc", async () => {
+            const block = await Config.web3.eth.getBlock(5665445, true);
+            const blocks = [block, null, { transactions: null }, { transactions: [] }];
+            const flatBlocks = new BlockchainParser().flatBlocks(blocks);
+
+            expect(flatBlocks.length).to.equal(1);
+            expect(flatBlocks[0]).to.equal(block);
+        })
     });
 
     describe("Test getBlocksToParse", () => {

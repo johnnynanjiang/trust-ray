@@ -152,7 +152,7 @@ export class BlockchainParser {
             if (hasNullBlocks.length > 0) {
                 return Promise.reject("Has null blocks. Wait for RPC to build a block");
             }
-            return this.transactionParser.parseTransactions(this.flatBlocksWithMissingTransactions(blocks));
+            return this.transactionParser.parseTransactions(this.flatBlocks(blocks));
         }).then((transactions: any) => {
             return this.tokenParser.parseERC20Contracts(transactions);
         }).then(([transactions, contracts]: any) => {
@@ -175,7 +175,7 @@ export class BlockchainParser {
         });
     }
 
-    private flatBlocksWithMissingTransactions(blocks: any) {
+    public flatBlocks(blocks: any) {
         return blocks
             .map((block: any) => (block !== null && block.transactions !== null && block.transactions.length > 0)
                 ? [block]

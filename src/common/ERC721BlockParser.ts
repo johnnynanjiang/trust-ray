@@ -4,16 +4,19 @@ import { LastParsedBlock } from "../models/LastParsedBlockModel";
 import { Token } from "../models/TokenModel";
 import { TransactionParser } from "../common/TransactionParser";
 import { setDelay } from "./Utils";
+import { BlockchainParser } from "./BlockchainParser";
 import { BlockchainState } from "./BlockchainState";
 import { ERC721TransactionParser } from "./ERC721TransactionParser";
 import { TokenParser } from "./TokenParser";
 
 export class ERC721BlockParser {
+    private blockchainParser: BlockchainParser;
     private transactionParser: TransactionParser;
     private erc721Parser: ERC721TransactionParser;
     private tokenParser: TokenParser;
 
     constructor() {
+        this.blockchainParser = new BlockchainParser();
         this.transactionParser = new TransactionParser();
         this.erc721Parser = new ERC721TransactionParser();
         this.tokenParser = new TokenParser();
@@ -57,7 +60,7 @@ export class ERC721BlockParser {
         return Config.web3.eth.getBlock(
             blockNumber, true
         ).then((block) => {
-            return this.transactionParser.parseTransactions(this.flatBlocksWithMissingTransactions([block]));
+            return this.transactionParser.parseTransactions(this.blockchainParser.flatBlocks([block]));
         }).then((transactions: any) => {
             return this.erc721Parser.parseERC721ContractsFromTransactions(transactions);
         }).then(([transactions, contracts]: any) => {
@@ -66,14 +69,5 @@ export class ERC721BlockParser {
         }).then(() => {
             return Promise.resolve();
         });
-    }
-
-
-    public flatBlocksWithMissingTransactions(blocks: any) {
-        return blocks
-            .map((block: any) => (block !== null && block.transactions !== null && block.transactions.length > 0)
-                ? [block]
-                : [])
-            .reduce( (a: any, b: any) => a.concat(b), [] );
     }
 }
