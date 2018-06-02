@@ -14,6 +14,16 @@ export class TransactionParser {
         Transfer: "Transfer",
     }
 
+    public extractTransactionsFromBlock(block): any[] {
+        return block.transactions.map((tx: ITransaction) => {
+            return new Transaction(this.extractTransactionData(block, tx));
+        });
+    }
+
+    public getTransactionIDsFromExtractedTransactions(extractedTransactions) {
+        return extractedTransactions.map((tx: IExtractedTransaction) => tx._id);
+    }
+
     public parseTransactions(blocks: any) {
         if (blocks.length === 0) return Promise.resolve();
 
@@ -41,7 +51,7 @@ export class TransactionParser {
         });
     }
 
-    private mergeTransactionsAndReceipts(transactions: any[], receipts: any[]) {
+    public mergeTransactionsAndReceipts(transactions: any[], receipts: any[]) {
         // TODO: Big(n square). Improve it
         const results: any = []
         transactions.forEach((transaction) => {
@@ -58,14 +68,14 @@ export class TransactionParser {
     }
 
     private mergeTransactionWithReceipt(transaction: any, receipt: any) {
-        const newTransaction = transaction;
-        newTransaction.gasUsed = receipt.gasUsed;
-        newTransaction.receipt = receipt;
-        newTransaction.contract = receipt.contractAddress ? receipt.contractAddress.toLowerCase() : null
+        const mergedTransaction = transaction;
+        mergedTransaction.gasUsed = receipt.gasUsed;
+        mergedTransaction.receipt = receipt;
+        mergedTransaction.contract = receipt.contractAddress ? receipt.contractAddress.toLowerCase() : null
         if (receipt.status) {
-            newTransaction.error = receipt.status === "0x1" ? "" : "Error";
+            mergedTransaction.error = receipt.status === "0x1" ? "" : "Error";
         }
-        return newTransaction;
+        return mergedTransaction;
     }
 
     extractTransactionData(block: IBlock, transaction: ITransaction) {
@@ -154,8 +164,8 @@ export class TransactionParser {
     }
 
     // https://gist.github.com/jdkanani/e76baa731a2b0cb6bbff26d085476722
-    private fetchTransactionReceipts (transactions: any) {
-        return new Promise((resolve, reject) => {
+    public fetchTransactionReceipts (transactions: any) {
+        return new Promise<any[]>((resolve, reject) => {
           const result: any = [];
           let completed = false;
           const callback = (err: Error, receipt: any) => {

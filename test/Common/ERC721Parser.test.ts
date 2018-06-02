@@ -4,8 +4,7 @@ import { ERC721BlockParser } from "../../src/common/ERC721BlockParser";
 import { Database } from "../../src/models/Database";
 import { Config } from "../../src/common/Config";
 import { TransactionParser } from "../../src/common/TransactionParser";
-import {block, ethTransferTrx} from "../SeedData";
-import {ITransaction} from "../../src/common/CommonInterfaces";
+import { ITransaction } from "../../src/common/CommonInterfaces";
 
 const config = require("config");
 const chai = require("chai")
@@ -84,26 +83,60 @@ describe("Test ERC721TransactionParser", () => {
             expect(flatBlocks[0]).to.equal(block);
         })
 
-        it("Should parse transactions from blocks", async () => {
-            const rawTransaction = block.transactions.find (
-                tx => tx.hash === "0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b"
-            );
+        it("Should parse a transaction from a block", async () => {
+            const transactionHash = "0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b";
+            const rawTransaction = block.transactions.find(tx => tx.hash === transactionHash);
             const transaction: ITransaction = rawTransaction;
-            const extractedTransactionData = transactionParser.extractTransactionData(block, transaction);
+            const extractedTransaction = transactionParser.extractTransactionData(block, transaction);
 
-            expect(extractedTransactionData._id).to.equal("0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b");
-            expect(extractedTransactionData.blockNumber).to.equal(5665445);
-            expect(extractedTransactionData.timeStamp).to.equal("1527114762");
-            expect(extractedTransactionData.nonce).to.equal(4);
-            expect(extractedTransactionData.from).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32");
-            expect(extractedTransactionData.to).to.equal("0xbe98850613ae66d49d1da1abeaed09daa0e90660");
-            expect(extractedTransactionData.value).to.equal("123151800000000000");
-            expect(extractedTransactionData.gas).to.equal("21000");
-            expect(extractedTransactionData.gasPrice).to.equal("10000000000");
-            expect(extractedTransactionData.gasUsed).to.equal("0");
-            expect(extractedTransactionData.input).to.equal("0x");
-            expect(extractedTransactionData.addresses.toString()).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32,0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+            expect(extractedTransaction._id).to.equal(transactionHash);
+            expect(extractedTransaction.blockNumber).to.equal(5665445);
+            expect(extractedTransaction.timeStamp).to.equal("1527114762");
+            expect(extractedTransaction.nonce).to.equal(4);
+            expect(extractedTransaction.from).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32");
+            expect(extractedTransaction.to).to.equal("0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+            expect(extractedTransaction.value).to.equal("123151800000000000");
+            expect(extractedTransaction.gas).to.equal("21000");
+            expect(extractedTransaction.gasPrice).to.equal("10000000000");
+            expect(extractedTransaction.gasUsed).to.equal("0");
+            expect(extractedTransaction.input).to.equal("0x");
+            expect(extractedTransaction.addresses.toString()).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32,0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+        })
 
+        it("Should fetch receipts from a transaction", async () => {
+            const transactionHash = "0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b";
+            const receipts = await transactionParser.fetchTransactionReceipts([transactionHash]);
+
+            expect(receipts.length).to.equal(1);
+            expect(receipts[0].from).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32");
+            expect(receipts[0].to).to.equal("0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+            expect(receipts[0].transactionHash).to.equal(transactionHash);
+            expect(receipts[0].transactionIndex).to.equal(177);
+            expect(receipts[0].gasUsed).to.equal(21000);
+        })
+
+        it("Should merge transactions and receipts into updated transactions", async () => {
+            const extractedTransactions = transactionParser.extractTransactionsFromBlock(block);
+            const txIDs = transactionParser.getTransactionIDsFromExtractedTransactions(extractedTransactions);
+            const receipts = await transactionParser.fetchTransactionReceipts(txIDs);
+
+            expect(extractedTransactions.length).to.equal(178);
+            expect(receipts.length).to.equal(178);
+            extractedTransactions.map((x) => {
+                expect(x.hasOwnProperty("receipt")).to.equal(false);
+            });
+
+            const mergedTransactions = await transactionParser.mergeTransactionsAndReceipts(extractedTransactions, receipts);
+
+            expect(mergedTransactions.length).to.equal(178);
+            mergedTransactions.map((tx) => {
+                expect(tx.receipt).to.equal(
+                    receipts.find(r => r.transactionHash === tx._id)
+                );
+            });
+        })
+
+        it("Should parse a block", async () => {
             const transactions = await transactionParser.parseTransactions([block]);
 
             expect(transactions.length).to.equal(178);
