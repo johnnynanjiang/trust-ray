@@ -4,6 +4,8 @@ import { ERC721BlockParser } from "../../src/common/ERC721BlockParser";
 import { Database } from "../../src/models/Database";
 import { Config } from "../../src/common/Config";
 import { TransactionParser } from "../../src/common/TransactionParser";
+import {block, ethTransferTrx} from "../SeedData";
+import {ITransaction} from "../../src/common/CommonInterfaces";
 
 const config = require("config");
 const chai = require("chai")
@@ -74,12 +76,37 @@ describe("Test ERC721TransactionParser", () => {
             return expect(result).to.eventually.equal("result")
         })
 
-        it("Should extract transactions from the block", () => {
+        it("Should flatten blocks by filtering out invalid blocks such as null, block.transaction being null, and etc", () => {
             const blocks = [block, null, { transactions: null }, { transactions: [] }];
             const flatBlocks = erc721BlockParser.flatBlocksWithMissingTransactions(blocks);
 
             expect(flatBlocks.length).to.equal(1);
             expect(flatBlocks[0]).to.equal(block);
+        })
+
+        it("Should parse transactions from blocks", async () => {
+            const rawTransaction = block.transactions.find (
+                tx => tx.hash === "0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b"
+            );
+            const transaction: ITransaction = rawTransaction;
+            const extractedTransactionData = transactionParser.extractTransactionData(block, transaction);
+
+            expect(extractedTransactionData._id).to.equal("0xb2c6a21504db37e36c5daae3663c704bbba7f1c4b0d16441fc347756e6bbfc9b");
+            expect(extractedTransactionData.blockNumber).to.equal(5665445);
+            expect(extractedTransactionData.timeStamp).to.equal("1527114762");
+            expect(extractedTransactionData.nonce).to.equal(4);
+            expect(extractedTransactionData.from).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32");
+            expect(extractedTransactionData.to).to.equal("0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+            expect(extractedTransactionData.value).to.equal("123151800000000000");
+            expect(extractedTransactionData.gas).to.equal("21000");
+            expect(extractedTransactionData.gasPrice).to.equal("10000000000");
+            expect(extractedTransactionData.gasUsed).to.equal("0");
+            expect(extractedTransactionData.input).to.equal("0x");
+            expect(extractedTransactionData.addresses.toString()).to.equal("0xe9e9f607d59da01e1c9a12a708ccfe7c9fdf8c32,0xbe98850613ae66d49d1da1abeaed09daa0e90660");
+
+            const transactions = await transactionParser.parseTransactions([block]);
+
+            expect(transactions.length).to.equal(178);
         })
     })
 })
