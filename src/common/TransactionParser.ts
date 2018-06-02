@@ -29,17 +29,14 @@ export class TransactionParser {
             winston.error(`Number of transactions not equal to number of receipts.`);
         }
 
-        // TODO: Big(n square), improved from 10s to 5s
-        const transactionMap = new Map<string, any>(
-            transactions.map(tx => [tx._id, tx] as [string, any])
-        );
+        // execution time improved from 10s to 5s
         const receiptMap = new Map<string, any>(
             receipts.map(r => [r.transactionHash, r] as [string, any])
         );
         const results: any = [];
 
-        transactionMap.forEach((transaction, transactionID) => {
-            const receipt = receiptMap.get(transactionID);
+        transactions.forEach((transaction) => {
+            const receipt = receiptMap.get(transaction._id);
             results.push(this.mergeTransactionWithReceipt(transaction, receipt));
         });
 
