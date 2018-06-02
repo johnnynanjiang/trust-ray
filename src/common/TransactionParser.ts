@@ -24,6 +24,28 @@ export class TransactionParser {
         return extractedTransactions.map((tx: IExtractedTransaction) => tx._id);
     }
 
+    public mergeTransactionsAndReceipts(transactions: any[], receipts: any[]) {
+        if (transactions.length !== receipts.length) {
+            winston.error(`Number of transactions not equal to number of receipts.`);
+        }
+
+        // TODO: Big(n square), improved from 10s to 5s
+        const transactionMap = new Map<string, any>(
+            transactions.map(tx => [tx._id, tx] as [string, any])
+        );
+        const receiptMap = new Map<string, any>(
+            receipts.map(r => [r.transactionHash, r] as [string, any])
+        );
+        const results: any = [];
+
+        transactionMap.forEach((transaction, transactionID) => {
+            const receipt = receiptMap.get(transactionID);
+            results.push(this.mergeTransactionWithReceipt(transaction, receipt));
+        });
+
+        return Promise.resolve(results);
+    }
+
     public parseTransactions(blocks: any) {
         if (blocks.length === 0) return Promise.resolve();
 
@@ -49,22 +71,6 @@ export class TransactionParser {
                 return Promise.resolve(transactions);
             });
         });
-    }
-
-    public mergeTransactionsAndReceipts(transactions: any[], receipts: any[]) {
-        // TODO: Big(n square). Improve it
-        const results: any = []
-        transactions.forEach((transaction) => {
-            receipts.forEach((receipt: any) => {
-                if (transaction._id == receipt.transactionHash) {
-                    results.push(this.mergeTransactionWithReceipt(transaction, receipt))
-                }
-            })
-        });
-        if (transactions.length !== receipts.length) {
-            winston.error(`Number of transactions not equal to number of receipts.`);
-        }
-        return Promise.resolve(results);
     }
 
     private mergeTransactionWithReceipt(transaction: any, receipt: any) {
