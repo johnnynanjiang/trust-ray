@@ -58,7 +58,31 @@ export class TokenParser {
             });
     }
 
-    private findOrCreateERC20Contract(contractAddress: string): Promise<void> {
+    public extractContractAddressesFromTransactionsReceiptLogs(transactions): any[] {
+        const contractAddresses: string[] = [];
+
+        transactions.map((transaction: any) => {
+            if (transaction.receipt.logs.length === 0 ) return;
+
+            const decodedLogs = this.abiDecoder.decodeLogs(transaction.receipt.logs).filter((log: any) => log);
+
+            if (decodedLogs.length === 0) return;
+
+            decodedLogs.forEach((decodedLog: any) => {
+                if (decodedLog.name === this.OperationTypes.Transfer) {
+                    contractAddresses.push(decodedLog.address.toLowerCase());
+                }
+            })
+        });
+
+        return contractAddresses;
+    }
+
+    public filterOutDuplicates(contractAddresses): any[] {
+        return [...(new Set(contractAddresses))];
+    }
+
+    public findOrCreateERC20Contract(contractAddress: string): Promise<any> {
         if (this.cachedContracts.hasOwnProperty(contractAddress)) {
             return Promise.resolve(this.cachedContracts[contractAddress]);
         }

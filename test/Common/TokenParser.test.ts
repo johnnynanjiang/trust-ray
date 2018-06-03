@@ -163,9 +163,32 @@ describe("Test ERC20Parser", () => {
 
             expect(transactions.length).to.equal(178);
 
-            const result = await tokenParser.parseERC20Contracts(null);
+            const resultUndefined = await tokenParser.parseERC20Contracts(null);
 
-            expect(result).to.deep.equal([ undefined, undefined ]);
+            expect(resultUndefined).to.deep.equal([ undefined, undefined ]);
+
+            const rawContractAddresses = await tokenParser.extractContractAddressesFromTransactionsReceiptLogs(transactions);
+
+            expect(rawContractAddresses.length).to.equal(91);
+
+            const contractAddresses = tokenParser.filterOutDuplicates(rawContractAddresses);
+
+            expect(contractAddresses.length).to.equal(31);
+        })
+
+        it("Should create or update ERC20 contract by address", () => {
+            const result = tokenParser.findOrCreateERC20Contract("0xd850942ef8811f2a866692a623011bde52a462c1");
+
+            result.then((contractObject) => {
+                expect(contractObject._id).to.be.not.null;
+                expect(contractObject.verified).to.equal(true);
+                expect(contractObject.enabled).to.equal(true);
+                expect(contractObject.address).to.equal("0xd850942ef8811f2a866692a623011bde52a462c1");
+                expect(contractObject.totalSupply).to.equal("1000000000000000000000000000");
+                expect(contractObject.decimals).to.equal(18);
+                expect(contractObject.symbol).to.equal("VEN");
+                expect(contractObject.name).to.equal("VeChain Token");
+            });
         })
     })
 })
