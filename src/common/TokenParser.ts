@@ -30,7 +30,7 @@ export class TokenParser {
         }
     }
 
-    public parseERC20Contracts(transactions: any) {
+    public parseERC20Contracts(transactions: any): any {
         if (!transactions) return Promise.resolve([undefined, undefined]);
 
         const contractAddresses: string[] = [];
@@ -195,7 +195,7 @@ export class TokenParser {
         }
     }
 
-    private flatContracts(contracts: any) {
+    public flatContracts(contracts: any) {
         // remove undefined contracts
         const flatUndefinedContracts =  contracts
             .map((contract: any) => (contract !== undefined && contract !== null)

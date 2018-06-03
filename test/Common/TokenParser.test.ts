@@ -127,21 +127,6 @@ describe("Test ERC20Parser", () => {
         })
     })
 
-    describe("Test getContract", () => {
-        const getContract = new TokenParser().getContract
-
-        it("Should get ERC20", async () => {
-            const contract = "0xeda8b016efa8b1161208cf041cd86972eee0f31e"
-            const result = await getContract(contract)
-
-            result.should.have.property("verified").to.equal(true)
-            result.should.have.property("name").eql("I HOUSE TOKEN")
-            result.should.have.property("symbol").eql("IHT")
-            result.should.have.property("decimals").eql(18)
-            result.should.have.property("totalSupply").eql("1000000000000000000000000000")
-        })
-    })
-
     describe("Test ERC20 parsing", () => {
         let db: Database;
         let tokenParser: TokenParser;
@@ -163,10 +148,6 @@ describe("Test ERC20Parser", () => {
 
             expect(transactions.length).to.equal(178);
 
-            const resultUndefined = await tokenParser.parseERC20Contracts(null);
-
-            expect(resultUndefined).to.deep.equal([ undefined, undefined ]);
-
             const rawContractAddresses = await tokenParser.extractContractAddressesFromTransactionsReceiptLogs(transactions);
 
             expect(rawContractAddresses.length).to.equal(91);
@@ -174,21 +155,40 @@ describe("Test ERC20Parser", () => {
             const contractAddresses = tokenParser.filterOutDuplicates(rawContractAddresses);
 
             expect(contractAddresses.length).to.equal(31);
+
+            const resultUndefined = await tokenParser.parseERC20Contracts(null);
+
+            expect(resultUndefined).to.deep.equal([ undefined, undefined ]);
+
+            const [returnedTransactions, returnedContracts] = await tokenParser.parseERC20Contracts(transactions);
+
+            expect(returnedTransactions.length).to.equal(178);
+            expect(returnedContracts.length).to.equal(26);
         })
 
         it("Should create or update ERC20 contract by address", () => {
-            const result = tokenParser.findOrCreateERC20Contract("0xd850942ef8811f2a866692a623011bde52a462c1");
+            const resultPromise = tokenParser.findOrCreateERC20Contract("0xd850942ef8811f2a866692a623011bde52a462c1");
 
-            result.then((contractObject) => {
-                expect(contractObject._id).to.be.not.null;
-                expect(contractObject.verified).to.equal(true);
-                expect(contractObject.enabled).to.equal(true);
-                expect(contractObject.address).to.equal("0xd850942ef8811f2a866692a623011bde52a462c1");
-                expect(contractObject.totalSupply).to.equal("1000000000000000000000000000");
-                expect(contractObject.decimals).to.equal(18);
-                expect(contractObject.symbol).to.equal("VEN");
-                expect(contractObject.name).to.equal("VeChain Token");
+            resultPromise.then((contract) => {
+                expect(contract._id).to.be.not.null;
+                expect(contract.verified).to.equal(true);
+                expect(contract.enabled).to.equal(true);
+                expect(contract.address).to.equal("0xd850942ef8811f2a866692a623011bde52a462c1");
+                expect(contract.totalSupply).to.equal("1000000000000000000000000000");
+                expect(contract.decimals).to.equal(18);
+                expect(contract.symbol).to.equal("VEN");
+                expect(contract.name).to.equal("VeChain Token");
             });
+        })
+
+        it("Should get ERC20 contract by address", async () => {
+            const result = await new TokenParser().getContract("0xeda8b016efa8b1161208cf041cd86972eee0f31e")
+
+            result.should.have.property("verified").to.equal(true)
+            result.should.have.property("name").eql("I HOUSE TOKEN")
+            result.should.have.property("symbol").eql("IHT")
+            result.should.have.property("decimals").eql(18)
+            result.should.have.property("totalSupply").eql("1000000000000000000000000000")
         })
     })
 })
