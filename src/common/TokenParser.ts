@@ -33,22 +33,7 @@ export class TokenParser {
     public parseERC20Contracts(transactions: any): any {
         if (!transactions) return Promise.resolve([undefined, undefined]);
 
-        const contractAddresses: string[] = [];
-
-        transactions.map((transaction: any) => {
-            if (transaction.receipt.logs.length === 0 ) return;
-
-            const decodedLogs = this.abiDecoder.decodeLogs(transaction.receipt.logs).filter((log: any) => log);
-
-            if (decodedLogs.length === 0) return;
-
-            decodedLogs.forEach((decodedLog: any) => {
-                if (decodedLog.name === this.OperationTypes.Transfer) {
-                    contractAddresses.push(decodedLog.address.toLowerCase());
-                }
-            })
-        });
-
+        const contractAddresses = this.extractContractAddressesFromTransactionsReceiptLogs(transactions);
         const uniqueContracts = [...(new Set(contractAddresses))];
         const promises = uniqueContracts.map((contractAddress: any) => this.findOrCreateERC20Contract(contractAddress));
 
@@ -78,7 +63,7 @@ export class TokenParser {
         return contractAddresses;
     }
 
-    public filterOutDuplicates(contractAddresses): any[] {
+    public filterDuplicates(contractAddresses): any[] {
         return [...(new Set(contractAddresses))];
     }
 

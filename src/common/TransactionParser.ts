@@ -114,7 +114,7 @@ export class TransactionParser {
                 return Promise.mapSeries(decodedLogs, (decodedLog: IDecodedLog, index: number) => {
                     if (decodedLog.name === this.OperationTypes.Transfer) {
                         const contract = contracts.find((contract: IContract) => contract.address === decodedLog.address.toLowerCase());
-                        if (contract) {
+                        if (contract) { // TODO: contract has to be in contracts, and contracts are ERC20 only. This func could be merged into TokenParser.extractContractAddressesFromTransactionsReceiptLogs()
                             const transfer = this.parseEventLog(decodedLog);
                             return this.findOrCreateTransactionOperation(transaction._id, index, transfer.from, transfer.to, transfer.value, contract._id);
                         }

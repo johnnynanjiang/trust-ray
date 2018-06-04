@@ -152,7 +152,7 @@ describe("Test ERC20Parser", () => {
 
             expect(rawContractAddresses.length).to.equal(91);
 
-            const contractAddresses = tokenParser.filterOutDuplicates(rawContractAddresses);
+            const contractAddresses = tokenParser.filterDuplicates(rawContractAddresses);
 
             expect(contractAddresses.length).to.equal(31);
 
@@ -164,6 +164,9 @@ describe("Test ERC20Parser", () => {
 
             expect(returnedTransactions.length).to.equal(178);
             expect(returnedContracts.length).to.equal(26);
+
+            const results = await transactionParser.parseTransactionOperations(returnedTransactions, returnedContracts);
+
         })
 
         it("Should create or update ERC20 contract by address", () => {
